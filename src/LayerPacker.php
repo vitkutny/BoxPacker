@@ -42,7 +42,7 @@ class LayerPacker implements LoggerAwareInterface
         $this->orientatedItemFactory = new OrientatedItemFactory($this->box);
         $this->orientatedItemFactory->setLogger($this->logger);
 
-        $boxVolume = $this->box->getInnerWidth() * $this->box->getInnerLength() * $this->box->getInnerDepth();
+        $boxVolume = VolumeCache::forBox($this->box);
         if ($this->box instanceof LimitedVolumeBox) {
             $this->boxVolumeAllowed = (int)($boxVolume / 100 * $this->box->getMaxVolumeUtilisation());
         } else {
@@ -95,7 +95,7 @@ class LayerPacker implements LoggerAwareInterface
             $itemToPack = $items->extract();
 
             // skip items that will never fit e.g. volume overflow
-            if ($itemToPack->getWidth() * $itemToPack->getLength() * $itemToPack->getDepth() > $remainingVolumeAllowed) {
+            if (VolumeCache::forItem($itemToPack) > $remainingVolumeAllowed) {
                 continue;
             }
 

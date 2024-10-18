@@ -139,7 +139,7 @@ readonly class PackedBox implements JsonSerializable
 
     public function getInnerVolume(): int
     {
-        return $this->box->getInnerWidth() * $this->box->getInnerLength() * $this->box->getInnerDepth();
+        return VolumeCache::forBox($this->box);
     }
 
     /**

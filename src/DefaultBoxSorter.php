@@ -12,8 +12,8 @@ class DefaultBoxSorter implements BoxSorter
 {
     public function compare(Box $boxA, Box $boxB): int
     {
-        $boxAVolume = $boxA->getInnerWidth() * $boxA->getInnerLength() * $boxA->getInnerDepth();
-        $boxBVolume = $boxB->getInnerWidth() * $boxB->getInnerLength() * $boxB->getInnerDepth();
+        $boxAVolume = VolumeCache::forBox($boxA);
+        $boxBVolume = VolumeCache::forBox($boxB);
 
         $volumeDecider = $boxAVolume <=> $boxBVolume; // try smallest box first
 

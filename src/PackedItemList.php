@@ -91,8 +91,8 @@ class PackedItemList implements Countable, IteratorAggregate
 
     private function compare(PackedItem $itemA, PackedItem $itemB): int
     {
-        $itemAVolume = $itemA->item->getWidth() * $itemA->item->getLength() * $itemA->item->getDepth();
-        $itemBVolume = $itemB->item->getWidth() * $itemB->item->getLength() * $itemB->item->getDepth();
+        $itemAVolume = VolumeCache::forItem($itemA->item);
+        $itemBVolume = VolumeCache::forItem($itemB->item);
 
         return ($itemBVolume <=> $itemAVolume) ?: ($itemB->item->getWeight() <=> $itemA->item->getWeight());
     }

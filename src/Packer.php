@@ -302,7 +302,7 @@ class Packer implements LoggerAwareInterface
         $this->logger->log(LogLevel::INFO, 'Determining box search pattern', ['enforceSingleBox' => $enforceSingleBox]);
         $itemVolume = 0;
         foreach ($this->items as $item) {
-            $itemVolume += $item->getWidth() * $item->getLength() * $item->getDepth();
+            $itemVolume += VolumeCache::forItem($item);
         }
         $this->logger->log(LogLevel::DEBUG, 'Item volume', ['itemVolume' => $itemVolume]);
 
@@ -310,7 +310,7 @@ class Packer implements LoggerAwareInterface
         $otherBoxes = [];
         foreach ($this->boxes as $box) {
             if ($this->boxQuantitiesAvailable[$box] > 0) {
-                if ($box->getInnerWidth() * $box->getInnerLength() * $box->getInnerDepth() >= $itemVolume) {
+                if (VolumeCache::forBox($box) >= $itemVolume) {
                     $preferredBoxes[] = $box;
                 } elseif (!$enforceSingleBox) {
                     $otherBoxes[] = $box;
