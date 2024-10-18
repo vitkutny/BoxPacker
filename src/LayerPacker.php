@@ -33,12 +33,21 @@ class LayerPacker implements LoggerAwareInterface
 
     private bool $isBoxRotated = false;
 
+    private readonly int $boxVolumeAllowed;
+
     public function __construct(private readonly Box $box)
     {
         $this->logger = new NullLogger();
 
         $this->orientatedItemFactory = new OrientatedItemFactory($this->box);
         $this->orientatedItemFactory->setLogger($this->logger);
+
+        $boxVolume = $this->box->getInnerWidth() * $this->box->getInnerLength() * $this->box->getInnerDepth();
+        if ($this->box instanceof LimitedVolumeBox) {
+            $this->boxVolumeAllowed = (int)($boxVolume / 100 * $this->box->getMaxVolumeUtilisation());
+        } else {
+            $this->boxVolumeAllowed = $boxVolume;
+        }
     }
 
     /**
@@ -80,9 +89,15 @@ class LayerPacker implements LoggerAwareInterface
         $prevItem = null;
         $skippedItems = [];
         $remainingWeightAllowed = $this->box->getMaxWeight() - $this->box->getEmptyWeight() - $packedItemList->getWeight();
+        $remainingVolumeAllowed = $this->boxVolumeAllowed - $packedItemList->getVolume();
 
         while ($items->count() > 0) {
             $itemToPack = $items->extract();
+
+            // skip items that will never fit e.g. volume overflow
+            if ($itemToPack->getWidth() * $itemToPack->getLength() * $itemToPack->getDepth() > $remainingVolumeAllowed) {
+                continue;
+            }
 
             // skip items that will never fit e.g. too heavy
             if ($itemToPack->getWeight() > $remainingWeightAllowed) {
@@ -113,7 +128,9 @@ class LayerPacker implements LoggerAwareInterface
                 }
 
                 $x += $packedItem->width;
-                $remainingWeightAllowed = $this->box->getMaxWeight() - $this->box->getEmptyWeight() - $packedItemList->getWeight(); // remember may have packed additional items
+				// remember may have packed additional items
+                $remainingWeightAllowed = $this->box->getMaxWeight() - $this->box->getEmptyWeight() - $packedItemList->getWeight();
+				$remainingVolumeAllowed = $this->boxVolumeAllowed - $packedItemList->getVolume();
 
                 // might be space available lengthwise across the width of this item, up to the current layer length
                 $layer->merge($this->packLayer($items, $packedItemList, $x - $packedItem->width, $y + $packedItem->length, $z, $x, $y + $rowLength, $depthForLayer, $layer->getDepth(), $considerStability, null));
